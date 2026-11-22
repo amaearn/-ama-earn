@@ -38,7 +38,10 @@ function verifyTelegram(initData) {
   if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
 
   try {
-    return JSON.parse(params.get("user"));
+    return {
+      user: JSON.parse(params.get("user")),
+      startParam: params.get("start_param")
+    };
   } catch {
     return null;
   }
@@ -46,21 +49,26 @@ function verifyTelegram(initData) {
 
 module.exports = async (req, res) => {
   try {
-    if (!process.env.SUPABASE_URL ||
-        !process.env.SUPABASE_SECRET_KEY ||
-        !process.env.TELEGRAM_BOT_TOKEN) {
+    if (
+      !process.env.SUPABASE_URL ||
+      !process.env.SUPABASE_SECRET_KEY ||
+      !process.env.TELEGRAM_BOT_TOKEN
+    ) {
       return res.status(500).json({ error: "Server environment variables missing" });
     }
 
     const authorization = req.headers.authorization || "";
+
     if (!authorization.startsWith("tma ")) {
       return res.status(401).json({ error: "Telegram authentication required" });
     }
 
-    const user = verifyTelegram(authorization.slice(4));
-    if (!user || !user.id) {
-      return res.status(401).json({ error: "Invalid or expired Telegram session" });
+    const verified = verifyTelegram(authorization.slice(4));
+    if (!verified || !verified.user?.id) {
+      return res.status(401).json({ error: "Invalid Telegram session" });
     }
+
+    const user = verified.user;
 
     const { error: profileError } = await supabase
       .from("profiles")
@@ -68,9 +76,25 @@ module.exports = async (req, res) => {
         telegram_id: user.id,
         username: user.username || null,
         first_name: user.first_name || null
-      }, { onConflict: "telegram_id", ignoreDuplicates: false });
+      }, { onConflict: "telegram_id" });
 
     if (profileError) throw profileError;
+
+    // Register referral from Telegram's signed start parameter.
+    const startParam = verified.startParam || "";
+
+    if (startParam.startsWith("ref_")) {
+      const referrerId = startParam.slice(4);
+
+      if (/^\d+$/.test(referrerId)) {
+        const { error } = await supabase.rpc("ama_register_referral", {
+          p_user_id: user.id,
+          p_referrer_id: referrerId
+        });
+
+        if (error) throw error;
+      }
+    }
 
     const path = new URL(req.url, "https://example.com").pathname;
 
@@ -82,24 +106,32 @@ module.exports = async (req, res) => {
         .single();
 
       if (error) throw error;
-      return res.status(200).json({ points: data.points });
+
+      return res.status(200).json({
+        points: data.points,
+        referral_link: `https://t.me/AMA_Earn_Bot?startapp=ref_${user.id}`
+      });
     }
 
     if (path === "/api/tap" && req.method === "POST") {
-      const { data, error } = await supabase
-        .rpc("ama_tap", { p_telegram_id: user.id });
+      const { data, error } = await supabase.rpc("ama_tap", {
+        p_telegram_id: user.id
+      });
 
       if (error) throw error;
       return res.status(200).json({ points: data });
     }
 
     if (path === "/api/daily" && req.method === "POST") {
-      const { data, error } = await supabase
-        .rpc("ama_daily_claim", { p_telegram_id: user.id });
+      const { data, error } = await supabase.rpc("ama_daily_claim", {
+        p_telegram_id: user.id
+      });
 
       if (error) {
         if (error.code === "23505") {
-          return res.status(409).json({ error: "Daily reward already claimed" });
+          return res.status(409).json({
+            error: "Daily reward already claimed"
+          });
         }
         throw error;
       }
@@ -108,6 +140,7 @@ module.exports = async (req, res) => {
     }
 
     return res.status(404).json({ error: "API route not found" });
+
   } catch (error) {
     console.error("AMA Earn API error:", error);
     return res.status(500).json({ error: "Server error. Please try again." });
