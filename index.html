@@ -9,10 +9,8 @@
   <style>
     * { box-sizing: border-box; }
     body {
-      margin: 0;
-      padding: 20px;
-      background: #080d19;
-      color: #fff;
+      margin: 0; padding: 20px;
+      background: #080d19; color: #fff;
       font-family: Arial, sans-serif;
     }
     .app { max-width: 480px; margin: auto; }
@@ -30,34 +28,56 @@
       background: #131d30; border: 1px solid #273650;
       border-radius: 18px; padding: 20px; margin: 15px 0;
     }
-    .points { font-size: 38px; color: #f4c65e; font-weight: bold; margin: 10px 0; }
+    .points {
+      font-size: 38px; color: #f4c65e;
+      font-weight: bold; margin: 10px 0;
+    }
     .muted { color: #aab3c5; font-size: 14px; }
     button {
       width: 100%; padding: 15px; border: 0;
-      border-radius: 12px; font-size: 16px;
+      border-radius: 12px; font-size: 15px;
       font-weight: bold; cursor: pointer; margin-top: 10px;
     }
-    button:disabled { opacity: .55; cursor: not-allowed; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
     .gold { background: linear-gradient(135deg,#ffe18a,#d69b32); color: #211604; }
     .dark { background: #263550; color: white; }
     .task {
-      display: flex; align-items: center;
-      justify-content: space-between; gap: 12px;
-      padding: 14px 0; border-bottom: 1px solid #29364b;
+      padding: 14px 0;
+      border-bottom: 1px solid #29364b;
     }
     .task:last-child { border-bottom: 0; }
-    .task-info { flex: 1; min-width: 0; }
-    .task-title { font-weight: bold; }
+    .task-title { font-weight: bold; margin-bottom: 5px; }
     .reward { color: #f4c65e; font-size: 13px; margin-top: 5px; }
-    .task-actions { display: flex; flex-direction: column; gap: 6px; }
-    .open-btn, .verify-btn {
-      width: 88px; padding: 10px 5px; margin: 0;
-      font-size: 12px;
+    .task-actions { display: flex; gap: 8px; }
+    .small-btn {
+      flex: 1; padding: 11px 5px; margin-top: 10px;
+      font-size: 13px;
     }
     .open-btn { background: #e6b84d; color: #211604; }
     .verify-btn { background: #263550; color: white; border: 1px solid #526785; }
-    .done-btn { background: #24583f; color: #b8ffd4; }
-    .status { text-align: center; color: #aab3c5; font-size: 13px; margin-top: 12px; }
+    .upload-input {
+      width: 100%; margin-top: 12px;
+      padding: 10px; border-radius: 9px;
+      background: #202d42; color: white;
+      border: 1px solid #526785;
+    }
+    .status {
+      text-align: center; color: #aab3c5;
+      font-size: 13px; margin-top: 12px;
+    }
+    .admin-item {
+      border: 1px solid #34445d;
+      padding: 12px; border-radius: 12px;
+      margin-top: 14px;
+    }
+    .proof-image {
+      width: 100%; max-height: 350px;
+      object-fit: contain; background: #080d19;
+      border-radius: 9px; margin-top: 10px;
+    }
+    .approve { background: #247747; color: white; }
+    .reject { background: #963b43; color: white; }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
@@ -89,7 +109,10 @@
 
   <div class="card">
     <h3>🎯 Social Tasks</h3>
-    <p class="muted">Join our Telegram community and verify your membership to earn points.</p>
+    <p class="muted">
+      Join our Telegram community or complete social tasks.
+      Upload a screenshot for Instagram and YouTube tasks.
+    </p>
     <div id="tasks">
       <div class="status">Loading tasks...</div>
     </div>
@@ -102,6 +125,15 @@
     <div class="status" id="inviteStatus"></div>
   </div>
 
+  <div class="card hidden" id="adminPanel">
+    <h3>👑 AMA Earn Admin Panel</h3>
+    <p class="muted">Review Instagram and YouTube proof submissions.</p>
+    <button class="gold" id="refreshAdmin">REFRESH SUBMISSIONS</button>
+    <div id="adminSubmissions">
+      <div class="status">Loading admin panel...</div>
+    </div>
+  </div>
+
   <div class="status" id="message">Connecting to AMA Earn...</div>
 </div>
 
@@ -110,12 +142,16 @@
   tg.ready();
   tg.expand();
 
+  const ADMIN_ID = "6760639376";
+
   const pointsEl = document.getElementById("points");
   const messageEl = document.getElementById("message");
   const tapBtn = document.getElementById("tapBtn");
   const dailyBtn = document.getElementById("dailyBtn");
   const tasksEl = document.getElementById("tasks");
   const inviteBtn = document.getElementById("inviteBtn");
+  const adminPanel = document.getElementById("adminPanel");
+  const adminSubmissions = document.getElementById("adminSubmissions");
 
   let busy = false;
 
@@ -128,7 +164,9 @@
       }
     };
 
-    if (body) options.body = JSON.stringify(body);
+    if (body !== null) {
+      options.body = JSON.stringify(body);
+    }
 
     const response = await fetch(path, options);
     const result = await response.json();
@@ -144,18 +182,9 @@
     messageEl.textContent = message;
   }
 
-  function updatePoints(value) {
-    pointsEl.textContent = Number(value).toLocaleString();
-  }
-
   async function loadProfile() {
-    try {
-      const data = await api("/api/me");
-      updatePoints(data.points);
-      showMessage("Welcome to AMA Earn!");
-    } catch (error) {
-      showMessage(error.message);
-    }
+    const data = await api("/api/me");
+    pointsEl.textContent = Number(data.points).toLocaleString();
   }
 
   tapBtn.addEventListener("click", async () => {
@@ -181,7 +210,7 @@
     try {
       await api("/api/daily", "POST");
       await loadProfile();
-      showMessage("Daily reward claimed successfully!");
+      showMessage("Daily reward claimed!");
     } catch (error) {
       showMessage(error.message);
     } finally {
@@ -189,22 +218,27 @@
     }
   });
 
+  function createButton(text, className, clickHandler) {
+    const button = document.createElement("button");
+    button.textContent = text;
+    button.className = className;
+    button.addEventListener("click", clickHandler);
+    return button;
+  }
+
   async function loadTasks() {
     try {
       const data = await api("/api/tasks");
       tasksEl.innerHTML = "";
 
       if (!data.tasks || data.tasks.length === 0) {
-        tasksEl.textContent = "No tasks available right now.";
+        tasksEl.textContent = "No tasks available.";
         return;
       }
 
       data.tasks.forEach(task => {
         const item = document.createElement("div");
         item.className = "task";
-
-        const info = document.createElement("div");
-        info.className = "task-info";
 
         const title = document.createElement("div");
         title.className = "task-title";
@@ -218,66 +252,141 @@
         reward.className = "reward";
         reward.textContent = "+" + task.reward + " points";
 
-        info.append(title, description, reward);
+        item.append(title, description, reward);
+
+        let host = "";
+        try {
+          host = new URL(task.task_url).hostname.toLowerCase();
+        } catch {}
+
+        const isTelegram = host === "t.me";
+        const isInstagram =
+          host === "instagram.com" || host === "www.instagram.com";
+        const isYouTube =
+          host === "youtube.com" || host === "www.youtube.com";
 
         const actions = document.createElement("div");
         actions.className = "task-actions";
 
-        const open = document.createElement("button");
-        open.className = "open-btn";
-        open.textContent = "OPEN";
-
-        open.addEventListener("click", () => {
+        const open = createButton("OPEN", "small-btn open-btn", () => {
           if (task.task_url) tg.openLink(task.task_url);
         });
 
-        const verify = document.createElement("button");
-        verify.className = "verify-btn";
-        verify.textContent = "VERIFY";
+        actions.appendChild(open);
+        item.appendChild(actions);
 
-        verify.addEventListener("click", async () => {
-          verify.disabled = true;
-          verify.textContent = "CHECKING";
-
-          try {
-            const result = await api(
-              "/api/verify-task",
-              "POST",
-              { task_id: task.id }
-            );
-
-            if (result.success) {
-              verify.textContent = "COMPLETED";
-              verify.className = "verify-btn done-btn";
+        if (isTelegram) {
+          const verify = createButton(
+            "VERIFY",
+            "small-btn verify-btn",
+            async () => {
               verify.disabled = true;
+              verify.textContent = "CHECKING";
 
-              if (Number(result.points_awarded) > 0) {
+              try {
+                const result = await api(
+                  "/api/verify-task",
+                  "POST",
+                  { task_id: task.id }
+                );
+
                 await loadProfile();
-                showMessage("Congratulations! +" + result.points_awarded + " points earned!");
-              } else {
-                showMessage("This task was already completed.");
+
+                verify.textContent =
+                  Number(result.points_awarded) > 0
+                    ? "COMPLETED"
+                    : "ALREADY DONE";
+
+                showMessage(
+                  Number(result.points_awarded) > 0
+                    ? "Congratulations! Points added."
+                    : "This task was already completed."
+                );
+              } catch (error) {
+                verify.disabled = false;
+                verify.textContent = "VERIFY";
+                showMessage(error.message);
               }
             }
-          } catch (error) {
-            verify.disabled = false;
-            verify.textContent = "VERIFY";
-            showMessage(error.message);
-          }
-        });
+          );
 
-        actions.append(open, verify);
-        item.append(info, actions);
+          actions.appendChild(verify);
+        } else if (isInstagram || isYouTube) {
+          const file = document.createElement("input");
+          file.type = "file";
+          file.accept = "image/jpeg,image/png,image/webp";
+          file.className = "upload-input";
+
+          const upload = createButton(
+            "SUBMIT SCREENSHOT",
+            "small-btn verify-btn",
+            async () => {
+              const selected = file.files[0];
+
+              if (!selected) {
+                showMessage("Please select your screenshot first.");
+                return;
+              }
+
+              if (!["image/jpeg", "image/png", "image/webp"].includes(selected.type)) {
+                showMessage("Please select JPG, PNG or WEBP image.");
+                return;
+              }
+
+              if (selected.size > 3 * 1024 * 1024) {
+                showMessage("Screenshot must be smaller than 3 MB.");
+                return;
+              }
+
+              upload.disabled = true;
+              upload.textContent = "UPLOADING";
+
+              try {
+                const image = await new Promise((resolve, reject) => {
+                  const reader = new FileReader();
+                  reader.onload = () => resolve(reader.result);
+                  reader.onerror = () => reject(new Error("Could not read image"));
+                  reader.readAsDataURL(selected);
+                });
+
+                await api("/api/submit-proof", "POST", {
+                  task_id: task.id,
+                  image
+                });
+
+                file.disabled = true;
+                upload.textContent = "SUBMITTED";
+                showMessage("Proof submitted. Waiting for admin approval.");
+              } catch (error) {
+                upload.disabled = false;
+                upload.textContent = "SUBMIT SCREENSHOT";
+                showMessage(error.message);
+              }
+            }
+          );
+
+          item.appendChild(file);
+          item.appendChild(upload);
+        } else {
+          const note = document.createElement("div");
+          note.className = "muted";
+          note.textContent = "Verification method not available yet.";
+          item.appendChild(note);
+        }
+
         tasksEl.appendChild(item);
       });
 
     } catch (error) {
       tasksEl.textContent = "Unable to load tasks. Please try again.";
+      showMessage(error.message);
     }
   }
 
   inviteBtn.addEventListener("click", async () => {
     try {
       const data = await api("/api/me");
+
       const shareUrl =
         "https://t.me/share/url?url=" +
         encodeURIComponent(data.referral_link) +
@@ -290,9 +399,122 @@
     }
   });
 
+  // ADMIN PANEL
+  async function loadAdminSubmissions() {
+    adminSubmissions.textContent = "Loading submissions...";
+
+    try {
+      const data = await api("/api/admin/submissions");
+      adminSubmissions.innerHTML = "";
+
+      if (!data.submissions || data.submissions.length === 0) {
+        adminSubmissions.textContent = "No pending submissions.";
+        return;
+      }
+
+      data.submissions.forEach(submission => {
+        const card = document.createElement("div");
+        card.className = "admin-item";
+
+        const heading = document.createElement("div");
+        heading.className = "task-title";
+        heading.textContent = submission.task_title;
+
+        const username = document.createElement("p");
+        username.className = "muted";
+        username.textContent =
+          "User: " +
+          (submission.username ? "@" + submission.username : "No username") +
+          " | ID: " + submission.telegram_id;
+
+        const reward = document.createElement("div");
+        reward.className = "reward";
+        reward.textContent = "Reward: " + submission.reward + " points";
+
+        const imageLink = document.createElement("a");
+        imageLink.href = submission.proof_url;
+        imageLink.target = "_blank";
+        imageLink.rel = "noopener noreferrer";
+        imageLink.textContent = "OPEN FULL SCREENSHOT";
+        imageLink.style.color = "#f4c65e";
+
+        const image = document.createElement("img");
+        image.className = "proof-image";
+        image.src = submission.proof_url;
+        image.alt = "User submitted proof";
+
+        const approve = createButton(
+          "APPROVE",
+          "small-btn approve",
+          () => reviewSubmission(submission.id, true, approve, reject)
+        );
+
+        const reject = createButton(
+          "REJECT",
+          "small-btn reject",
+          () => reviewSubmission(submission.id, false, approve, reject)
+        );
+
+        const actions = document.createElement("div");
+        actions.className = "task-actions";
+        actions.append(approve, reject);
+
+        card.append(heading, username, reward, imageLink, image, actions);
+        adminSubmissions.appendChild(card);
+      });
+
+    } catch (error) {
+      adminSubmissions.textContent = error.message;
+    }
+  }
+
+  async function reviewSubmission(id, approved, approveBtn, rejectBtn) {
+    if (!confirm(approved
+      ? "Approve this proof and award points?"
+      : "Reject this proof?")) {
+      return;
+    }
+
+    approveBtn.disabled = true;
+    rejectBtn.disabled = true;
+
+    try {
+      const result = await api("/api/admin/review", "POST", {
+        submission_id: id,
+        approved,
+        note: approved ? "Proof approved" : "Proof rejected"
+      });
+
+      showMessage(
+        approved
+          ? "Proof approved. " + result.points_awarded + " points awarded."
+          : "Proof rejected."
+      );
+
+      await loadAdminSubmissions();
+    } catch (error) {
+      approveBtn.disabled = false;
+      rejectBtn.disabled = false;
+      showMessage(error.message);
+    }
+  }
+
+  document.getElementById("refreshAdmin").addEventListener(
+    "click",
+    loadAdminSubmissions
+  );
+
+  // Start app
   if (tg.initData) {
-    loadProfile();
+    loadProfile().catch(error => showMessage(error.message));
     loadTasks();
+
+    const telegramUserId = tg.initDataUnsafe?.user?.id;
+
+    if (String(telegramUserId) === ADMIN_ID) {
+      adminPanel.classList.remove("hidden");
+      loadAdminSubmissions();
+    }
   } else {
     showMessage("Please open AMA Earn inside Telegram.");
     tasksEl.textContent = "Open the app through Telegram to view tasks.";
