@@ -2,121 +2,206 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AMA Earn</title>
-<style>
-*{box-sizing:border-box}
-body{margin:0;background:#101522;color:white;font-family:Arial,sans-serif;text-align:center}
-header{padding:25px;background:#192238}
-h1{color:#f5c542;margin:5px}
-main{max-width:440px;margin:auto;padding:20px}
-.card{background:#202c43;border-radius:18px;padding:22px;margin:16px 0}
-.points{font-size:36px;font-weight:bold;color:#f5c542;margin:12px}
-.tap{width:190px;height:190px;border-radius:50%;border:7px solid #f5c542;background:#293b59;color:white;font-size:25px;font-weight:bold;margin:20px;cursor:pointer}
-button.action{width:100%;padding:15px;border:0;border-radius:12px;background:#f5c542;color:#111;font-size:16px;font-weight:bold;margin-top:10px;cursor:pointer}
-button:disabled{opacity:.5}
-nav{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.small{color:#b8c2d5;font-size:13px}
-</style>
-</head>
-<body>
-<header>
-<h1>AMA EARN</h1>
-<p>Tap • Earn • Grow</p>
-</header>
-<main>
-<div class="card">
-<p>Your Total Points</p>
-<div class="points" id="points">0</div>
-<p class="small" id="status">Connecting to AMA Earn...</p>
-</div>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AMA Earn</title>
 
-<div class="card">
-<button class="tap" id="tap">TAP TO EARN</button>
-<p>Earn points by tapping</p>
-</div>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-<div class="card">
-<h2>Daily Reward</h2>
-<p>Claim your daily 100 points</p>
-<button class="action" id="daily">Claim Daily Reward</button>
-</div>
-
-<div class="card">
-<h2>More Rewards</h2>
-<nav>
-<button class="action" id="tasks">Tasks</button>
-<button class="action" id="referral">Invite Friends</button>
-</nav>
-</div>
-<p class="small">AMA Earn • Points are in-app rewards.</p>
-</main>
-
-<script>
-const points = document.getElementById("points");
-const statusText = document.getElementById("status");
-
-async function api(path, method="POST") {
-  const tg = window.Telegram?.WebApp;
-  if (!tg || !tg.initData) {
-    throw new Error("Please open AMA Earn inside Telegram.");
-  }
-  const response = await fetch(path, {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "tma " + tg.initData
+  <style>
+    * {
+      box-sizing: border-box;
     }
-  });
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error || "Request failed");
-  return data;
-}
 
-async function loadProfile() {
-  try {
-    const data = await api("/api/me", "GET");
-    points.textContent = data.points ?? 0;
-    statusText.textContent = "Welcome to AMA Earn!";
-  } catch (error) {
-    statusText.textContent = error.message;
-  }
-}
+    body {
+      margin: 0;
+      background: #101522;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
 
-document.getElementById("tap").onclick = async () => {
-  try {
-    const data = await api("/api/tap");
-    points.textContent = data.points;
-  } catch (error) {
-    alert(error.message);
-  }
-};
+    header {
+      padding: 25px;
+      background: #192238;
+    }
 
-document.getElementById("daily").onclick = async () => {
-  try {
-    const data = await api("/api/daily");
-    points.textContent = data.points;
-    alert("Daily reward claimed!");
-  } catch (error) {
-    alert(error.message);
-  }
-};
+    h1 {
+      color: #f5c542;
+      margin: 5px;
+    }
 
-document.getElementById("tasks").onclick = () => {
-  alert("Tasks section is coming next!");
-};
+    main {
+      max-width: 440px;
+      margin: auto;
+      padding: 20px;
+    }
 
-document.getElementById("referral").onclick = () => {
-  alert("Referral system is coming next!");
-};
+    .card {
+      background: #202c43;
+      border-radius: 18px;
+      padding: 22px;
+      margin: 16px 0;
+    }
 
-if (window.Telegram?.WebApp) {
-  window.Telegram.WebApp.ready();
-  window.Telegram.WebApp.expand();
-}
-loadProfile();
-</script>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+    .points {
+      font-size: 36px;
+      font-weight: bold;
+      color: #f5c542;
+      margin: 12px;
+    }
+
+    .tap {
+      width: 190px;
+      height: 190px;
+      border-radius: 50%;
+      border: 7px solid #f5c542;
+      background: #293b59;
+      color: white;
+      font-size: 25px;
+      font-weight: bold;
+      margin: 20px;
+      cursor: pointer;
+    }
+
+    button.action {
+      width: 100%;
+      padding: 15px;
+      border: 0;
+      border-radius: 12px;
+      background: #f5c542;
+      color: #111;
+      font-size: 16px;
+      font-weight: bold;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+
+    nav {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .small {
+      color: #b8c2d5;
+      font-size: 13px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>AMA EARN</h1>
+    <p>Tap • Earn • Grow</p>
+  </header>
+
+  <main>
+
+    <div class="card">
+      <p>Your Total Points</p>
+      <div class="points" id="points">0</div>
+      <p class="small" id="status">Connecting...</p>
+    </div>
+
+    <div class="card">
+      <button class="tap" id="tap">TAP TO EARN</button>
+      <p>Earn points by tapping</p>
+    </div>
+
+    <div class="card">
+      <h2>Daily Reward</h2>
+      <p>Claim your daily 100 points</p>
+      <button class="action" id="daily">
+        Claim Daily Reward
+      </button>
+    </div>
+
+    <div class="card">
+      <h2>More Rewards</h2>
+      <nav>
+        <button class="action" id="tasks">Tasks</button>
+        <button class="action" id="referral">Invite Friends</button>
+      </nav>
+    </div>
+
+    <p class="small">AMA Earn • In-app reward points</p>
+
+  </main>
+
+  <script>
+    const points = document.getElementById("points");
+    const statusText = document.getElementById("status");
+
+    async function api(path, method = "POST") {
+      const tg = window.Telegram?.WebApp;
+
+      if (!tg || !tg.initData) {
+        throw new Error("Please open AMA Earn inside Telegram.");
+      }
+
+      const response = await fetch(path, {
+        method: method,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "tma " + tg.initData
+        }
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Request failed");
+      }
+
+      return data;
+    }
+
+    async function loadProfile() {
+      try {
+        const data = await api("/api/me", "GET");
+        points.textContent = data.points ?? 0;
+        statusText.textContent = "Welcome to AMA Earn!";
+      } catch (error) {
+        statusText.textContent = error.message;
+      }
+    }
+
+    document.getElementById("tap").onclick = async () => {
+      try {
+        const data = await api("/api/tap");
+        points.textContent = data.points;
+      } catch (error) {
+        alert(error.message);
+      }
+    };
+
+    document.getElementById("daily").onclick = async () => {
+      try {
+        const data = await api("/api/daily");
+        points.textContent = data.points;
+        alert("Daily reward claimed!");
+      } catch (error) {
+        alert(error.message);
+      }
+    };
+
+    document.getElementById("tasks").onclick = () => {
+      alert("Tasks section is coming next!");
+    };
+
+    document.getElementById("referral").onclick = () => {
+      alert("Referral system is coming next!");
+    };
+
+    if (window.Telegram?.WebApp) {
+      window.Telegram.WebApp.ready();
+      window.Telegram.WebApp.expand();
+    }
+
+    loadProfile();
+  </script>
+
 </body>
 </html>
