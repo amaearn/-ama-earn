@@ -15,90 +15,49 @@
       color: #fff;
       font-family: Arial, sans-serif;
     }
-    .app {
-      max-width: 480px;
-      margin: auto;
-    }
-    .header {
-      text-align: center;
-      padding: 24px 10px;
-    }
+    .app { max-width: 480px; margin: auto; }
+    .header { text-align: center; padding: 24px 10px; }
     .logo {
-      width: 85px;
-      height: 85px;
-      border-radius: 50%;
+      width: 85px; height: 85px; border-radius: 50%;
       background: linear-gradient(145deg,#f9d878,#a66b13);
-      color: #211604;
-      display: grid;
-      place-items: center;
-      margin: auto;
-      font-size: 30px;
-      font-weight: 900;
-      border: 4px solid #ffe6a0;
-      box-shadow: 0 0 25px #d49a3155;
+      color: #211604; display: grid; place-items: center;
+      margin: auto; font-size: 30px; font-weight: 900;
+      border: 4px solid #ffe6a0; box-shadow: 0 0 25px #d49a3155;
     }
     h1 { color: #f4c65e; margin-bottom: 5px; }
     .subtitle { color: #aab3c5; }
     .card {
-      background: #131d30;
-      border: 1px solid #273650;
-      border-radius: 18px;
-      padding: 20px;
-      margin: 15px 0;
+      background: #131d30; border: 1px solid #273650;
+      border-radius: 18px; padding: 20px; margin: 15px 0;
     }
-    .points {
-      font-size: 38px;
-      color: #f4c65e;
-      font-weight: bold;
-      margin: 10px 0;
-    }
+    .points { font-size: 38px; color: #f4c65e; font-weight: bold; margin: 10px 0; }
     .muted { color: #aab3c5; font-size: 14px; }
     button {
-      width: 100%;
-      padding: 15px;
-      border: 0;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 10px;
+      width: 100%; padding: 15px; border: 0;
+      border-radius: 12px; font-size: 16px;
+      font-weight: bold; cursor: pointer; margin-top: 10px;
     }
-    .gold {
-      background: linear-gradient(135deg,#ffe18a,#d69b32);
-      color: #211604;
-    }
-    .dark {
-      background: #263550;
-      color: white;
-    }
+    button:disabled { opacity: .55; cursor: not-allowed; }
+    .gold { background: linear-gradient(135deg,#ffe18a,#d69b32); color: #211604; }
+    .dark { background: #263550; color: white; }
     .task {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 14px 0;
-      border-bottom: 1px solid #29364b;
+      display: flex; align-items: center;
+      justify-content: space-between; gap: 12px;
+      padding: 14px 0; border-bottom: 1px solid #29364b;
     }
     .task:last-child { border-bottom: 0; }
-    .task-info { flex: 1; }
+    .task-info { flex: 1; min-width: 0; }
     .task-title { font-weight: bold; }
     .reward { color: #f4c65e; font-size: 13px; margin-top: 5px; }
-    .open-btn {
-      width: auto;
-      min-width: 85px;
-      padding: 10px 13px;
-      margin: 0;
-      background: #e6b84d;
-      color: #211604;
-      font-size: 13px;
+    .task-actions { display: flex; flex-direction: column; gap: 6px; }
+    .open-btn, .verify-btn {
+      width: 88px; padding: 10px 5px; margin: 0;
+      font-size: 12px;
     }
-    .status {
-      text-align: center;
-      color: #aab3c5;
-      font-size: 13px;
-      margin-top: 12px;
-    }
-    .hidden { display: none; }
+    .open-btn { background: #e6b84d; color: #211604; }
+    .verify-btn { background: #263550; color: white; border: 1px solid #526785; }
+    .done-btn { background: #24583f; color: #b8ffd4; }
+    .status { text-align: center; color: #aab3c5; font-size: 13px; margin-top: 12px; }
   </style>
 </head>
 <body>
@@ -130,7 +89,7 @@
 
   <div class="card">
     <h3>🎯 Social Tasks</h3>
-    <p class="muted">Visit our official social media accounts.</p>
+    <p class="muted">Join our Telegram community and verify your membership to earn points.</p>
     <div id="tasks">
       <div class="status">Loading tasks...</div>
     </div>
@@ -138,9 +97,7 @@
 
   <div class="card">
     <h3>👥 Invite Friends</h3>
-    <p class="muted">
-      Invite your friends and earn referral rewards.
-    </p>
+    <p class="muted">Invite your friends and earn referral rewards.</p>
     <button class="gold" id="inviteBtn">INVITE FRIENDS</button>
     <div class="status" id="inviteStatus"></div>
   </div>
@@ -160,18 +117,20 @@
   const tasksEl = document.getElementById("tasks");
   const inviteBtn = document.getElementById("inviteBtn");
 
-  let currentPoints = 0;
   let busy = false;
 
-  async function api(path, method = "GET") {
-    const response = await fetch(path, {
+  async function api(path, method = "GET", body = null) {
+    const options = {
       method,
       headers: {
         "Authorization": "tma " + tg.initData,
         "Content-Type": "application/json"
       }
-    });
+    };
 
+    if (body) options.body = JSON.stringify(body);
+
+    const response = await fetch(path, options);
     const result = await response.json();
 
     if (!response.ok) {
@@ -186,8 +145,7 @@
   }
 
   function updatePoints(value) {
-    currentPoints = Number(value);
-    pointsEl.textContent = currentPoints.toLocaleString();
+    pointsEl.textContent = Number(value).toLocaleString();
   }
 
   async function loadProfile() {
@@ -206,8 +164,8 @@
     tapBtn.disabled = true;
 
     try {
-      const data = await api("/api/tap", "POST");
-      updatePoints(data.points);
+      await api("/api/tap", "POST");
+      await loadProfile();
       showMessage("+1 point added!");
     } catch (error) {
       showMessage(error.message);
@@ -221,8 +179,8 @@
     dailyBtn.disabled = true;
 
     try {
-      const data = await api("/api/daily", "POST");
-      updatePoints(data.points);
+      await api("/api/daily", "POST");
+      await loadProfile();
       showMessage("Daily reward claimed successfully!");
     } catch (error) {
       showMessage(error.message);
@@ -262,17 +220,53 @@
 
         info.append(title, description, reward);
 
+        const actions = document.createElement("div");
+        actions.className = "task-actions";
+
         const open = document.createElement("button");
         open.className = "open-btn";
         open.textContent = "OPEN";
 
         open.addEventListener("click", () => {
-          if (task.task_url) {
-            tg.openLink(task.task_url);
+          if (task.task_url) tg.openLink(task.task_url);
+        });
+
+        const verify = document.createElement("button");
+        verify.className = "verify-btn";
+        verify.textContent = "VERIFY";
+
+        verify.addEventListener("click", async () => {
+          verify.disabled = true;
+          verify.textContent = "CHECKING";
+
+          try {
+            const result = await api(
+              "/api/verify-task",
+              "POST",
+              { task_id: task.id }
+            );
+
+            if (result.success) {
+              verify.textContent = "COMPLETED";
+              verify.className = "verify-btn done-btn";
+              verify.disabled = true;
+
+              if (Number(result.points_awarded) > 0) {
+                await loadProfile();
+                showMessage("Congratulations! +" + result.points_awarded + " points earned!");
+              } else {
+                showMessage("This task was already completed.");
+              }
+            }
+          } catch (error) {
+            verify.disabled = false;
+            verify.textContent = "VERIFY";
+            showMessage(error.message);
           }
         });
 
-        item.append(info, open);
+        actions.append(open, verify);
+        item.append(info, actions);
         tasksEl.appendChild(item);
       });
 
@@ -284,19 +278,15 @@
   inviteBtn.addEventListener("click", async () => {
     try {
       const data = await api("/api/me");
-      const referralLink = data.referral_link;
-
       const shareUrl =
         "https://t.me/share/url?url=" +
-        encodeURIComponent(referralLink) +
+        encodeURIComponent(data.referral_link) +
         "&text=" +
         encodeURIComponent("Join AMA Earn and collect rewards!");
 
       tg.openTelegramLink(shareUrl);
-
     } catch (error) {
-      document.getElementById("inviteStatus").textContent =
-        error.message;
+      document.getElementById("inviteStatus").textContent = error.message;
     }
   });
 
