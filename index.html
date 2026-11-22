@@ -134,6 +134,8 @@
     const points = document.getElementById("points");
     const statusText = document.getElementById("status");
 
+    let referralLink = "";
+
     async function api(path, method = "POST") {
       const tg = window.Telegram?.WebApp;
 
@@ -161,8 +163,12 @@
     async function loadProfile() {
       try {
         const data = await api("/api/me", "GET");
+
         points.textContent = data.points ?? 0;
+        referralLink = data.referral_link || "";
+
         statusText.textContent = "Welcome to AMA Earn!";
+
       } catch (error) {
         statusText.textContent = error.message;
       }
@@ -171,7 +177,9 @@
     document.getElementById("tap").onclick = async () => {
       try {
         const data = await api("/api/tap");
+
         points.textContent = data.points;
+
       } catch (error) {
         alert(error.message);
       }
@@ -180,8 +188,11 @@
     document.getElementById("daily").onclick = async () => {
       try {
         const data = await api("/api/daily");
+
         points.textContent = data.points;
+
         alert("Daily reward claimed!");
+
       } catch (error) {
         alert(error.message);
       }
@@ -192,7 +203,30 @@
     };
 
     document.getElementById("referral").onclick = () => {
-      alert("Referral system is coming next!");
+      if (!referralLink) {
+        alert("Please reopen the app and try again.");
+        return;
+      }
+
+      const tg = window.Telegram?.WebApp;
+
+      const shareUrl =
+        "https://t.me/share/url?url=" +
+        encodeURIComponent(referralLink) +
+        "&text=" +
+        encodeURIComponent(
+          "Join AMA Earn and earn rewards with me!"
+        );
+
+      if (tg) {
+        tg.openTelegramLink(shareUrl);
+      } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(referralLink)
+          .then(() => alert("Referral link copied!"))
+          .catch(() => alert("Could not copy referral link."));
+      } else {
+        alert("Referral link: " + referralLink);
+      }
     };
 
     if (window.Telegram?.WebApp) {
@@ -205,3 +239,4 @@
 
 </body>
 </html>
+      
