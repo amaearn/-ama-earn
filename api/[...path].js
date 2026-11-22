@@ -51,6 +51,39 @@ function verifyTelegram(initData) {
   }
 }
 
+// Telegram membership verification
+async function checkTelegramMembership(chatUsername, userId) {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+
+  const response = await fetch(
+    `https://api.telegram.org/bot${token}/getChatMember`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        chat_id: chatUsername,
+        user_id: userId
+      })
+    }
+  );
+
+  const result = await response.json();
+
+  if (!result.ok) {
+    console.error("Telegram verification error:", result);
+    throw new Error("Telegram membership check failed");
+  }
+
+  const member = result.result;
+
+  return (
+    ["creator", "administrator", "member"].includes(member.status) ||
+    (member.status === "restricted" && member.is_member === true)
+  );
+}
+
 module.exports = async (req, res) => {
   try {
     if (
@@ -194,9 +227,7 @@ module.exports = async (req, res) => {
     if (path === "/api/tasks" && req.method === "GET") {
       const { data, error } = await supabase
         .from("tasks")
-        .select(
-          "id, title, description, reward, task_url"
-        )
+        .select("id, title, description, reward, task_url")
         .eq("is_active", true)
         .order("created_at", {
           ascending: true
@@ -206,6 +237,96 @@ module.exports = async (req, res) => {
 
       return res.status(200).json({
         tasks: data
+      });
+    }
+
+    // Verify Telegram channel or group task
+    if (path === "/api/verify-task" && req.method === "POST") {
+      const body = typeof req.body === "string"
+        ? JSON.parse(req.body)
+        : req.body || {};
+
+      const taskId = body.task_id;
+
+      if (
+        typeof taskId !== "string" ||
+        !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(taskId)
+      ) {
+        return res.status(400).json({
+          error: "Invalid task ID"
+        });
+      }
+
+      const { data: task, error: taskError } = await supabase
+        .from("tasks")
+        .select("id, title, reward, task_url")
+        .eq("id", taskId)
+        .eq("is_active", true)
+        .single();
+
+      if (taskError || !task) {
+        return res.status(404).json({
+          error: "Task not found"
+        });
+      }
+
+      let chatUsername = null;
+
+      try {
+        const taskUrl = new URL(task.task_url);
+        const taskPath = taskUrl.pathname
+          .replace(/^\/+|\/+$/g, "")
+          .toLowerCase();
+
+        if (
+          taskUrl.hostname === "t.me" &&
+          taskPath === "amaearnofficial"
+        ) {
+          chatUsername = "@AMAEarnOfficial";
+        } else if (
+          taskUrl.hostname === "t.me" &&
+          taskPath === "amaearncommunity"
+        ) {
+          chatUsername = "@AMAEarnCommunity";
+        }
+      } catch {
+        chatUsername = null;
+      }
+
+      if (!chatUsername) {
+        return res.status(400).json({
+          error: "Automatic verification is not available for this task yet"
+        });
+      }
+
+      const isMember = await checkTelegramMembership(
+        chatUsername,
+        user.id
+      );
+
+      if (!isMember) {
+        return res.status(403).json({
+          error: "Please join the Telegram channel or group first"
+        });
+      }
+
+      const { data: reward, error: rewardError } = await supabase.rpc(
+        "ama_complete_task",
+        {
+          p_telegram_id: user.id,
+          p_task_id: task.id
+        }
+      );
+
+      if (rewardError) throw rewardError;
+
+      return res.status(200).json({
+        success: true,
+        points_awarded: reward,
+        already_completed: Number(reward) === 0,
+        message: Number(reward) === 0
+          ? "Task already completed"
+          : "Task verified. Points added!"
       });
     }
 
