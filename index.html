@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AMA Earn</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
   <style>
     * { box-sizing: border-box; }
 
@@ -123,8 +124,7 @@
       margin-top: 12px;
     }
 
-    .admin-item,
-    .campaign-item {
+    .admin-item {
       border: 1px solid #34445d;
       padding: 12px;
       border-radius: 12px;
@@ -145,57 +145,6 @@
     .reject { background: #963b43; color: white; }
 
     .hidden { display: none; }
-
-    .field-label {
-      display: block;
-      color: #f4c65e;
-      font-size: 13px;
-      margin: 14px 0 6px;
-      font-weight: bold;
-    }
-
-    .field {
-      display: block;
-      width: 100%;
-      padding: 13px;
-      border-radius: 10px;
-      background: #202d42;
-      color: white;
-      border: 1px solid #526785;
-      font-size: 14px;
-      outline: none;
-    }
-
-    textarea.field {
-      min-height: 100px;
-      resize: vertical;
-      font-family: Arial, sans-serif;
-    }
-
-    .campaign-status {
-      display: inline-block;
-      padding: 5px 9px;
-      border-radius: 7px;
-      background: #263550;
-      color: #fff;
-      font-size: 12px;
-      margin-top: 8px;
-    }
-
-    .pending { color: #ffd875; }
-    .approved-status { color: #72e3a0; }
-    .rejected-status { color: #ff8d96; }
-    .paid-status { color: #72e3a0; }
-    .unpaid-status { color: #ffd875; }
-
-    .section-note {
-      color: #aab3c5;
-      font-size: 12px;
-      line-height: 1.5;
-      margin-top: 8px;
-    }
-
-    a { color: #f4c65e; }
   </style>
 </head>
 
@@ -232,6 +181,7 @@
       Join our Telegram community or complete social tasks.
       Upload a screenshot for Instagram and YouTube tasks.
     </p>
+
     <div id="tasks">
       <div class="status">Loading tasks...</div>
     </div>
@@ -244,108 +194,24 @@
     <div class="status" id="inviteStatus"></div>
   </div>
 
-  <!-- ADVERTISER DASHBOARD -->
-  <div class="card" id="advertiserPanel">
-    <h3>📢 Advertiser Dashboard</h3>
-    <p class="muted">
-      Promote your company, product or service through AMA Earn.
-      Submit your campaign for admin review.
-    </p>
-
-    <form id="campaignForm">
-      <label class="field-label" for="companyName">Company Name *</label>
-      <input
-        class="field"
-        id="companyName"
-        maxlength="100"
-        placeholder="Your company name"
-        required
-      >
-
-      <label class="field-label" for="contactEmail">Contact Email</label>
-      <input
-        class="field"
-        id="contactEmail"
-        type="email"
-        maxlength="150"
-        placeholder="your@email.com"
-      >
-
-      <label class="field-label" for="campaignTitle">Campaign Title *</label>
-      <input
-        class="field"
-        id="campaignTitle"
-        maxlength="150"
-        placeholder="Example: New product promotion"
-        required
-      >
-
-      <label class="field-label" for="campaignDescription">Campaign Description *</label>
-      <textarea
-        class="field"
-        id="campaignDescription"
-        maxlength="2000"
-        placeholder="Describe your product, service or promotion"
-        required
-      ></textarea>
-
-      <label class="field-label" for="targetUrl">Website / Promotion Link *</label>
-      <input
-        class="field"
-        id="targetUrl"
-        type="url"
-        placeholder="https://example.com"
-        required
-      >
-
-      <p class="section-note">
-        Campaigns are reviewed by AMA Earn admin before approval.
-        Campaign charges and payment arrangements will be discussed manually.
-      </p>
-
-      <button class="gold" id="submitCampaignBtn" type="submit">
-        SUBMIT CAMPAIGN
-      </button>
-    </form>
-
-    <div class="status" id="campaignMessage"></div>
-
-    <hr style="border-color:#29364b;margin:22px 0">
-
-    <h3>📋 My Campaigns</h3>
-    <button class="dark" id="refreshMyCampaigns">REFRESH MY CAMPAIGNS</button>
-    <div id="myCampaigns">
-      <div class="status">Your campaigns will appear here.</div>
-    </div>
-  </div>
-
   <!-- ADMIN PROOF PANEL -->
   <div class="card hidden" id="adminPanel">
     <h3>👑 AMA Earn Admin Panel</h3>
     <p class="muted">Review Instagram and YouTube proof submissions.</p>
     <button class="gold" id="refreshAdmin">REFRESH SUBMISSIONS</button>
+
     <div id="adminSubmissions">
       <div class="status">Loading admin panel...</div>
     </div>
   </div>
 
-  <!-- ADMIN CAMPAIGN PANEL -->
-  <div class="card hidden" id="adminCampaignPanel">
-    <h3>🛠 Campaign Management</h3>
-    <p class="muted">
-      Review advertiser campaigns and update payment status.
-    </p>
-    <button class="gold" id="refreshAdminCampaigns">REFRESH CAMPAIGNS</button>
-    <div id="adminCampaigns">
-      <div class="status">Loading campaigns...</div>
-    </div>
-  </div>
-
   <div class="status" id="message">Connecting to AMA Earn...</div>
+
 </div>
 
 <script>
   const tg = window.Telegram.WebApp;
+
   tg.ready();
   tg.expand();
 
@@ -359,12 +225,6 @@
   const inviteBtn = document.getElementById("inviteBtn");
   const adminPanel = document.getElementById("adminPanel");
   const adminSubmissions = document.getElementById("adminSubmissions");
-
-  const campaignForm = document.getElementById("campaignForm");
-  const campaignMessage = document.getElementById("campaignMessage");
-  const myCampaignsEl = document.getElementById("myCampaigns");
-  const adminCampaignPanel = document.getElementById("adminCampaignPanel");
-  const adminCampaignsEl = document.getElementById("adminCampaigns");
 
   let busy = false;
 
@@ -405,7 +265,11 @@
 
   function makeText(tag, className, text) {
     const element = document.createElement(tag);
-    if (className) element.className = className;
+
+    if (className) {
+      element.className = className;
+    }
+
     element.textContent = text;
     return element;
   }
@@ -415,8 +279,10 @@
     pointsEl.textContent = Number(data.points).toLocaleString();
   }
 
+  // TAP TO EARN
   tapBtn.addEventListener("click", async () => {
     if (busy) return;
+
     busy = true;
     tapBtn.disabled = true;
 
@@ -432,6 +298,7 @@
     }
   });
 
+  // DAILY REWARD
   dailyBtn.addEventListener("click", async () => {
     dailyBtn.disabled = true;
 
@@ -446,9 +313,11 @@
     }
   });
 
+  // SOCIAL TASKS
   async function loadTasks() {
     try {
       const data = await api("/api/tasks");
+
       tasksEl.innerHTML = "";
 
       if (!data.tasks || data.tasks.length === 0) {
@@ -467,21 +336,28 @@
         item.append(title, description, reward);
 
         let host = "";
+
         try {
           host = new URL(task.task_url).hostname.toLowerCase();
         } catch {}
 
         const isTelegram = host === "t.me";
+
         const isInstagram =
-          host === "instagram.com" || host === "www.instagram.com";
+          host === "instagram.com" ||
+          host === "www.instagram.com";
+
         const isYouTube =
-          host === "youtube.com" || host === "www.youtube.com";
+          host === "youtube.com" ||
+          host === "www.youtube.com";
 
         const actions = document.createElement("div");
         actions.className = "task-actions";
 
         const open = createButton("OPEN", "small-btn open-btn", () => {
-          if (task.task_url) tg.openLink(task.task_url);
+          if (task.task_url) {
+            tg.openLink(task.task_url);
+          }
         });
 
         actions.appendChild(open);
@@ -514,6 +390,7 @@
                     ? "Congratulations! Points added."
                     : "This task was already completed."
                 );
+
               } catch (error) {
                 verify.disabled = false;
                 verify.textContent = "VERIFY";
@@ -523,8 +400,10 @@
           );
 
           actions.appendChild(verify);
+
         } else if (isInstagram || isYouTube) {
           const file = document.createElement("input");
+
           file.type = "file";
           file.accept = "image/jpeg,image/png,image/webp";
           file.className = "upload-input";
@@ -540,7 +419,9 @@
                 return;
               }
 
-              if (!["image/jpeg", "image/png", "image/webp"].includes(selected.type)) {
+              if (
+                !["image/jpeg", "image/png", "image/webp"].includes(selected.type)
+              ) {
                 showMessage("Please select JPG, PNG or WEBP image.");
                 return;
               }
@@ -556,8 +437,12 @@
               try {
                 const image = await new Promise((resolve, reject) => {
                   const reader = new FileReader();
+
                   reader.onload = () => resolve(reader.result);
-                  reader.onerror = () => reject(new Error("Could not read image"));
+                  reader.onerror = () => reject(
+                    new Error("Could not read image")
+                  );
+
                   reader.readAsDataURL(selected);
                 });
 
@@ -568,7 +453,11 @@
 
                 file.disabled = true;
                 upload.textContent = "SUBMITTED";
-                showMessage("Proof submitted. Waiting for admin approval.");
+
+                showMessage(
+                  "Proof submitted. Waiting for admin approval."
+                );
+
               } catch (error) {
                 upload.disabled = false;
                 upload.textContent = "SUBMIT SCREENSHOT";
@@ -579,12 +468,14 @@
 
           item.appendChild(file);
           item.appendChild(upload);
+
         } else {
           const note = makeText(
             "div",
             "muted",
             "Verification method not available yet."
           );
+
           item.appendChild(note);
         }
 
@@ -597,6 +488,7 @@
     }
   }
 
+  // INVITE FRIENDS
   inviteBtn.addEventListener("click", async () => {
     try {
       const data = await api("/api/me");
@@ -608,103 +500,12 @@
         encodeURIComponent("Join AMA Earn and collect rewards!");
 
       tg.openTelegramLink(shareUrl);
+
     } catch (error) {
-      document.getElementById("inviteStatus").textContent = error.message;
+      document.getElementById("inviteStatus").textContent =
+        error.message;
     }
   });
-
-  // ADVERTISER: SUBMIT CAMPAIGN
-  campaignForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    const submitBtn = document.getElementById("submitCampaignBtn");
-    submitBtn.disabled = true;
-    submitBtn.textContent = "SUBMITTING...";
-    campaignMessage.textContent = "";
-
-    const campaign = {
-      company_name: document.getElementById("companyName").value.trim(),
-      contact_email: document.getElementById("contactEmail").value.trim(),
-      title: document.getElementById("campaignTitle").value.trim(),
-      description: document.getElementById("campaignDescription").value.trim(),
-      target_url: document.getElementById("targetUrl").value.trim()
-    };
-
-    try {
-      await api("/api/advertiser/campaigns", "POST", campaign);
-
-      campaignMessage.textContent =
-        "Campaign submitted successfully. Waiting for admin review.";
-
-      campaignForm.reset();
-      await loadMyCampaigns();
-    } catch (error) {
-      campaignMessage.textContent = error.message;
-    } finally {
-      submitBtn.disabled = false;
-      submitBtn.textContent = "SUBMIT CAMPAIGN";
-    }
-  });
-
-  // ADVERTISER: LOAD OWN CAMPAIGNS
-  async function loadMyCampaigns() {
-    myCampaignsEl.textContent = "Loading your campaigns...";
-
-    try {
-      const data = await api("/api/advertiser/campaigns");
-      myCampaignsEl.innerHTML = "";
-
-      if (!data.campaigns || data.campaigns.length === 0) {
-        myCampaignsEl.textContent = "You have not submitted any campaigns yet.";
-        return;
-      }
-
-      data.campaigns.forEach(campaign => {
-        const card = document.createElement("div");
-        card.className = "campaign-item";
-
-        card.appendChild(makeText("div", "task-title", campaign.title));
-        card.appendChild(makeText("div", "muted", campaign.company_name));
-        card.appendChild(makeText("p", "muted", campaign.description));
-
-        const status = makeText(
-          "div",
-          "campaign-status " +
-            (campaign.status === "approved"
-              ? "approved-status"
-              : campaign.status === "rejected"
-                ? "rejected-status"
-                : "pending"),
-          "Campaign: " + campaign.status.toUpperCase()
-        );
-
-        const payment = makeText(
-          "div",
-          "campaign-status " +
-            (campaign.payment_status === "paid" ? "paid-status" : "unpaid-status"),
-          "Payment: " + campaign.payment_status.toUpperCase()
-        );
-
-        card.append(status, payment);
-
-        if (campaign.admin_note) {
-          card.appendChild(
-            makeText("p", "muted", "Admin note: " + campaign.admin_note)
-          );
-        }
-
-        myCampaignsEl.appendChild(card);
-      });
-
-    } catch (error) {
-      myCampaignsEl.textContent = error.message;
-    }
-  }
-
-  document.getElementById("refreshMyCampaigns").addEventListener(
-    "click",
-    loadMyCampaigns
-  );
 
   // ADMIN: LOAD PENDING PROOF SUBMISSIONS
   async function loadAdminSubmissions() {
@@ -712,6 +513,7 @@
 
     try {
       const data = await api("/api/admin/submissions");
+
       adminSubmissions.innerHTML = "";
 
       if (!data.submissions || data.submissions.length === 0) {
@@ -723,13 +525,19 @@
         const card = document.createElement("div");
         card.className = "admin-item";
 
-        const heading = makeText("div", "task-title", submission.task_title);
+        const heading = makeText(
+          "div",
+          "task-title",
+          submission.task_title
+        );
 
         const username = makeText(
           "p",
           "muted",
           "User: " +
-            (submission.username ? "@" + submission.username : "No username") +
+            (submission.username
+              ? "@" + submission.username
+              : "No username") +
             " | ID: " + submission.telegram_id
         );
 
@@ -740,12 +548,14 @@
         );
 
         const imageLink = document.createElement("a");
+
         imageLink.href = submission.proof_url;
         imageLink.target = "_blank";
         imageLink.rel = "noopener noreferrer";
         imageLink.textContent = "OPEN FULL SCREENSHOT";
 
         const image = document.createElement("img");
+
         image.className = "proof-image";
         image.src = submission.proof_url;
         image.alt = "User submitted proof";
@@ -753,20 +563,39 @@
         const approve = createButton(
           "APPROVE",
           "small-btn approve",
-          () => reviewSubmission(submission.id, true, approve, reject)
+          () => reviewSubmission(
+            submission.id,
+            true,
+            approve,
+            reject
+          )
         );
 
         const reject = createButton(
           "REJECT",
           "small-btn reject",
-          () => reviewSubmission(submission.id, false, approve, reject)
+          () => reviewSubmission(
+            submission.id,
+            false,
+            approve,
+            reject
+          )
         );
 
         const actions = document.createElement("div");
         actions.className = "task-actions";
+
         actions.append(approve, reject);
 
-        card.append(heading, username, reward, imageLink, image, actions);
+        card.append(
+          heading,
+          username,
+          reward,
+          imageLink,
+          image,
+          actions
+        );
+
         adminSubmissions.appendChild(card);
       });
 
@@ -775,10 +604,18 @@
     }
   }
 
-  async function reviewSubmission(id, approved, approveBtn, rejectBtn) {
-    if (!confirm(approved
-      ? "Approve this proof and award points?"
-      : "Reject this proof?")) {
+  // ADMIN: APPROVE OR REJECT PROOF
+  async function reviewSubmission(
+    id,
+    approved,
+    approveBtn,
+    rejectBtn
+  ) {
+    if (!confirm(
+      approved
+        ? "Approve this proof and award points?"
+        : "Reject this proof?"
+    )) {
       return;
     }
 
@@ -786,19 +623,28 @@
     rejectBtn.disabled = true;
 
     try {
-      const result = await api("/api/admin/review", "POST", {
-        submission_id: id,
-        approved,
-        note: approved ? "Proof approved" : "Proof rejected"
-      });
+      const result = await api(
+        "/api/admin/review",
+        "POST",
+        {
+          submission_id: id,
+          approved,
+          note: approved
+            ? "Proof approved"
+            : "Proof rejected"
+        }
+      );
 
       showMessage(
         approved
-          ? "Proof approved. " + result.points_awarded + " points awarded."
+          ? "Proof approved. " +
+            result.points_awarded +
+            " points awarded."
           : "Proof rejected."
       );
 
       await loadAdminSubmissions();
+
     } catch (error) {
       approveBtn.disabled = false;
       rejectBtn.disabled = false;
@@ -811,177 +657,26 @@
     loadAdminSubmissions
   );
 
-  // ADMIN: LOAD ALL ADVERTISER CAMPAIGNS
-  async function loadAdminCampaigns() {
-    adminCampaignsEl.textContent = "Loading campaigns...";
-
-    try {
-      const data = await api("/api/admin/campaigns");
-      adminCampaignsEl.innerHTML = "";
-
-      if (!data.campaigns || data.campaigns.length === 0) {
-        adminCampaignsEl.textContent = "No advertiser campaigns yet.";
-        return;
-      }
-
-      data.campaigns.forEach(campaign => {
-        const card = document.createElement("div");
-        card.className = "campaign-item";
-
-        card.appendChild(makeText("div", "task-title", campaign.title));
-        card.appendChild(makeText("div", "muted", "Company: " + campaign.company_name));
-        card.appendChild(makeText("p", "muted", campaign.description));
-        card.appendChild(makeText("p", "muted", "Advertiser Telegram ID: " + campaign.advertiser_telegram_id));
-
-        if (campaign.contact_email) {
-          card.appendChild(makeText("p", "muted", "Email: " + campaign.contact_email));
-        }
-
-        const link = document.createElement("a");
-        link.href = campaign.target_url;
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        link.textContent = "OPEN CAMPAIGN LINK";
-        card.appendChild(link);
-
-        card.appendChild(
-          makeText(
-            "div",
-            "campaign-status pending",
-            "Campaign: " + campaign.status.toUpperCase()
-          )
-        );
-
-        card.appendChild(
-          makeText(
-            "div",
-            "campaign-status " +
-              (campaign.payment_status === "paid" ? "paid-status" : "unpaid-status"),
-            "Payment: " + campaign.payment_status.toUpperCase()
-          )
-        );
-
-        const noteInput = document.createElement("input");
-        noteInput.className = "field";
-        noteInput.maxLength = 500;
-        noteInput.placeholder = "Optional admin note";
-        noteInput.value = campaign.admin_note || "";
-        card.appendChild(noteInput);
-
-        const actions = document.createElement("div");
-        actions.className = "task-actions";
-
-        const approve = createButton(
-          "APPROVE",
-          "small-btn approve",
-          () => updateCampaign(campaign.id, "approved", noteInput.value, approve, reject)
-        );
-
-        const reject = createButton(
-          "REJECT",
-          "small-btn reject",
-          () => updateCampaign(campaign.id, "rejected", noteInput.value, approve, reject)
-        );
-
-        actions.append(approve, reject);
-        card.appendChild(actions);
-
-        const paymentButton = createButton(
-          campaign.payment_status === "paid" ? "MARK UNPAID" : "MARK PAID",
-          "small-btn dark",
-          () => updateCampaignPayment(
-            campaign.id,
-            campaign.payment_status === "paid" ? "unpaid" : "paid",
-            paymentButton
-          )
-        );
-
-        card.appendChild(paymentButton);
-        adminCampaignsEl.appendChild(card);
-      });
-
-    } catch (error) {
-      adminCampaignsEl.textContent = error.message;
-    }
-  }
-
-  // ADMIN: APPROVE OR REJECT CAMPAIGN
-  async function updateCampaign(id, status, note, approveBtn, rejectBtn) {
-    if (!confirm(
-      status === "approved"
-        ? "Approve this advertiser campaign?"
-        : "Reject this advertiser campaign?"
-    )) {
-      return;
-    }
-
-    approveBtn.disabled = true;
-    rejectBtn.disabled = true;
-
-    try {
-      await api("/api/admin/campaign-review", "POST", {
-        campaign_id: id,
-        status,
-        admin_note: note
-      });
-
-      showMessage("Campaign " + status + " successfully.");
-      await loadAdminCampaigns();
-      await loadMyCampaigns();
-    } catch (error) {
-      approveBtn.disabled = false;
-      rejectBtn.disabled = false;
-      showMessage(error.message);
-    }
-  }
-
-  // ADMIN: UPDATE PAYMENT STATUS
-  async function updateCampaignPayment(id, paymentStatus, button) {
-    if (!confirm("Change payment status to " + paymentStatus.toUpperCase() + "?")) {
-      return;
-    }
-
-    button.disabled = true;
-
-    try {
-      await api("/api/admin/campaign-payment", "POST", {
-        campaign_id: id,
-        payment_status: paymentStatus
-      });
-
-      showMessage("Payment status updated.");
-      await loadAdminCampaigns();
-    } catch (error) {
-      button.disabled = false;
-      showMessage(error.message);
-    }
-  }
-
-  document.getElementById("refreshAdminCampaigns").addEventListener(
-    "click",
-    loadAdminCampaigns
-  );
-
   // START APP
   if (tg.initData) {
     loadProfile().catch(error => showMessage(error.message));
+
     loadTasks();
-    loadMyCampaigns();
 
     const telegramUserId = tg.initDataUnsafe?.user?.id;
 
     if (String(telegramUserId) === ADMIN_ID) {
       adminPanel.classList.remove("hidden");
-      adminCampaignPanel.classList.remove("hidden");
-
       loadAdminSubmissions();
-      loadAdminCampaigns();
     }
+
   } else {
     showMessage("Please open AMA Earn inside Telegram.");
-    tasksEl.textContent = "Open the app through Telegram to view tasks.";
-    campaignForm.querySelector("button").disabled = true;
+
+    tasksEl.textContent =
+      "Open the app through Telegram to view tasks.";
   }
 </script>
+
 </body>
 </html>
