@@ -512,6 +512,187 @@ module.exports = async (req, res) => {
       return res.status(200).json(data);
     }
 
+    // ADVERTISER: CREATE CAMPAIGN
+    if (path === "/api/advertiser/campaigns" && req.method === "POST") {
+      const body = typeof req.body === "string"
+        ? JSON.parse(req.body)
+        : req.body || {};
+
+      const company = String(body.company_name || "").trim();
+      const title = String(body.title || "").trim();
+      const description = String(body.description || "").trim();
+      const email = String(body.contact_email || "").trim();
+      const targetUrl = String(body.target_url || "").trim();
+
+      if (!company || !title || !description || !targetUrl) {
+        return res.status(400).json({
+          error: "Please complete all required fields"
+        });
+      }
+
+      if (
+        company.length > 100 ||
+        title.length > 150 ||
+        description.length > 2000 ||
+        email.length > 150
+      ) {
+        return res.status(400).json({
+          error: "Some fields are too long"
+        });
+      }
+
+      try {
+        const url = new URL(targetUrl);
+
+        if (url.protocol !== "https:") {
+          return res.status(400).json({
+            error: "Please use a secure HTTPS link"
+          });
+        }
+      } catch {
+        return res.status(400).json({
+          error: "Please enter a valid website URL"
+        });
+      }
+
+      const { data, error } = await supabase
+        .from("advertiser_campaigns")
+        .insert({
+          advertiser_telegram_id: user.id,
+          company_name: company,
+          contact_email: email || null,
+          title,
+          description,
+          target_url: targetUrl,
+          campaign_fee: 0,
+          status: "pending",
+          payment_status: "unpaid"
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return res.status(201).json({
+        success: true,
+        campaign: data
+      });
+    }
+
+    // ADVERTISER: VIEW OWN CAMPAIGNS
+    if (path === "/api/advertiser/campaigns" && req.method === "GET") {
+      const { data, error } = await supabase
+        .from("advertiser_campaigns")
+        .select("*")
+        .eq("advertiser_telegram_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      return res.status(200).json({
+        campaigns: data
+      });
+    }
+
+    // ADMIN: VIEW ALL CAMPAIGNS
+    if (path === "/api/admin/campaigns" && req.method === "GET") {
+      if (!isAdmin(user.id)) {
+        return res.status(403).json({
+          error: "Admin access denied"
+        });
+      }
+
+      const { data, error } = await supabase
+        .from("advertiser_campaigns")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      return res.status(200).json({
+        campaigns: data
+      });
+    }
+
+    // ADMIN: APPROVE OR REJECT CAMPAIGN
+    if (path === "/api/admin/campaign-review" && req.method === "POST") {
+      if (!isAdmin(user.id)) {
+        return res.status(403).json({
+          error: "Admin access denied"
+        });
+      }
+
+      const body = typeof req.body === "string"
+        ? JSON.parse(req.body)
+        : req.body || {};
+
+      if (
+        typeof body.campaign_id !== "string" ||
+        !["approved", "rejected"].includes(body.status)
+      ) {
+        return res.status(400).json({
+          error: "Campaign ID and valid status are required"
+        });
+      }
+
+      const { data, error } = await supabase
+        .from("advertiser_campaigns")
+        .update({
+          status: body.status,
+          admin_note: String(body.admin_note || "").slice(0, 500),
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", body.campaign_id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return res.status(200).json({
+        success: true,
+        campaign: data
+      });
+    }
+
+    // ADMIN: UPDATE CAMPAIGN PAYMENT STATUS
+    if (path === "/api/admin/campaign-payment" && req.method === "POST") {
+      if (!isAdmin(user.id)) {
+        return res.status(403).json({
+          error: "Admin access denied"
+        });
+      }
+
+      const body = typeof req.body === "string"
+        ? JSON.parse(req.body)
+        : req.body || {};
+
+      if (
+        typeof body.campaign_id !== "string" ||
+        !["paid", "unpaid"].includes(body.payment_status)
+      ) {
+        return res.status(400).json({
+          error: "Campaign ID and valid payment status are required"
+        });
+      }
+
+      const { data, error } = await supabase
+        .from("advertiser_campaigns")
+        .update({
+          payment_status: body.payment_status,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", body.campaign_id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return res.status(200).json({
+        success: true,
+        campaign: data
+      });
+    }
+
     return res.status(404).json({
       error: "API route not found"
     });
