@@ -8,78 +8,197 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     * { box-sizing: border-box; }
+
     body {
-      margin: 0; padding: 20px;
-      background: #080d19; color: #fff;
+      margin: 0;
+      padding: 20px;
+      background: #080d19;
+      color: #fff;
       font-family: Arial, sans-serif;
     }
+
     .app { max-width: 480px; margin: auto; }
+
     .header { text-align: center; padding: 24px 10px; }
+
     .logo {
-      width: 85px; height: 85px; border-radius: 50%;
+      width: 85px;
+      height: 85px;
+      border-radius: 50%;
       background: linear-gradient(145deg,#f9d878,#a66b13);
-      color: #211604; display: grid; place-items: center;
-      margin: auto; font-size: 30px; font-weight: 900;
-      border: 4px solid #ffe6a0; box-shadow: 0 0 25px #d49a3155;
+      color: #211604;
+      display: grid;
+      place-items: center;
+      margin: auto;
+      font-size: 30px;
+      font-weight: 900;
+      border: 4px solid #ffe6a0;
+      box-shadow: 0 0 25px #d49a3155;
     }
+
     h1 { color: #f4c65e; margin-bottom: 5px; }
+    h3 { margin-top: 0; }
     .subtitle { color: #aab3c5; }
+
     .card {
-      background: #131d30; border: 1px solid #273650;
-      border-radius: 18px; padding: 20px; margin: 15px 0;
+      background: #131d30;
+      border: 1px solid #273650;
+      border-radius: 18px;
+      padding: 20px;
+      margin: 15px 0;
     }
+
     .points {
-      font-size: 38px; color: #f4c65e;
-      font-weight: bold; margin: 10px 0;
+      font-size: 38px;
+      color: #f4c65e;
+      font-weight: bold;
+      margin: 10px 0;
     }
+
     .muted { color: #aab3c5; font-size: 14px; }
+
     button {
-      width: 100%; padding: 15px; border: 0;
-      border-radius: 12px; font-size: 15px;
-      font-weight: bold; cursor: pointer; margin-top: 10px;
+      width: 100%;
+      padding: 15px;
+      border: 0;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
     }
+
     button:disabled { opacity: .5; cursor: not-allowed; }
-    .gold { background: linear-gradient(135deg,#ffe18a,#d69b32); color: #211604; }
+
+    .gold {
+      background: linear-gradient(135deg,#ffe18a,#d69b32);
+      color: #211604;
+    }
+
     .dark { background: #263550; color: white; }
+
     .task {
       padding: 14px 0;
       border-bottom: 1px solid #29364b;
     }
+
     .task:last-child { border-bottom: 0; }
     .task-title { font-weight: bold; margin-bottom: 5px; }
     .reward { color: #f4c65e; font-size: 13px; margin-top: 5px; }
-    .task-actions { display: flex; gap: 8px; }
+
+    .task-actions {
+      display: flex;
+      gap: 8px;
+    }
+
     .small-btn {
-      flex: 1; padding: 11px 5px; margin-top: 10px;
+      flex: 1;
+      padding: 11px 5px;
+      margin-top: 10px;
       font-size: 13px;
     }
+
     .open-btn { background: #e6b84d; color: #211604; }
-    .verify-btn { background: #263550; color: white; border: 1px solid #526785; }
-    .upload-input {
-      width: 100%; margin-top: 12px;
-      padding: 10px; border-radius: 9px;
-      background: #202d42; color: white;
+
+    .verify-btn {
+      background: #263550;
+      color: white;
       border: 1px solid #526785;
     }
+
+    .upload-input {
+      width: 100%;
+      margin-top: 12px;
+      padding: 10px;
+      border-radius: 9px;
+      background: #202d42;
+      color: white;
+      border: 1px solid #526785;
+    }
+
     .status {
-      text-align: center; color: #aab3c5;
-      font-size: 13px; margin-top: 12px;
+      text-align: center;
+      color: #aab3c5;
+      font-size: 13px;
+      margin-top: 12px;
     }
-    .admin-item {
+
+    .admin-item,
+    .campaign-item {
       border: 1px solid #34445d;
-      padding: 12px; border-radius: 12px;
+      padding: 12px;
+      border-radius: 12px;
       margin-top: 14px;
+      overflow-wrap: anywhere;
     }
+
     .proof-image {
-      width: 100%; max-height: 350px;
-      object-fit: contain; background: #080d19;
-      border-radius: 9px; margin-top: 10px;
+      width: 100%;
+      max-height: 350px;
+      object-fit: contain;
+      background: #080d19;
+      border-radius: 9px;
+      margin-top: 10px;
     }
+
     .approve { background: #247747; color: white; }
     .reject { background: #963b43; color: white; }
+
     .hidden { display: none; }
+
+    .field-label {
+      display: block;
+      color: #f4c65e;
+      font-size: 13px;
+      margin: 14px 0 6px;
+      font-weight: bold;
+    }
+
+    .field {
+      display: block;
+      width: 100%;
+      padding: 13px;
+      border-radius: 10px;
+      background: #202d42;
+      color: white;
+      border: 1px solid #526785;
+      font-size: 14px;
+      outline: none;
+    }
+
+    textarea.field {
+      min-height: 100px;
+      resize: vertical;
+      font-family: Arial, sans-serif;
+    }
+
+    .campaign-status {
+      display: inline-block;
+      padding: 5px 9px;
+      border-radius: 7px;
+      background: #263550;
+      color: #fff;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+
+    .pending { color: #ffd875; }
+    .approved-status { color: #72e3a0; }
+    .rejected-status { color: #ff8d96; }
+    .paid-status { color: #72e3a0; }
+    .unpaid-status { color: #ffd875; }
+
+    .section-note {
+      color: #aab3c5;
+      font-size: 12px;
+      line-height: 1.5;
+      margin-top: 8px;
+    }
+
+    a { color: #f4c65e; }
   </style>
 </head>
+
 <body>
 <div class="app">
 
@@ -125,12 +244,100 @@
     <div class="status" id="inviteStatus"></div>
   </div>
 
+  <!-- ADVERTISER DASHBOARD -->
+  <div class="card" id="advertiserPanel">
+    <h3>📢 Advertiser Dashboard</h3>
+    <p class="muted">
+      Promote your company, product or service through AMA Earn.
+      Submit your campaign for admin review.
+    </p>
+
+    <form id="campaignForm">
+      <label class="field-label" for="companyName">Company Name *</label>
+      <input
+        class="field"
+        id="companyName"
+        maxlength="100"
+        placeholder="Your company name"
+        required
+      >
+
+      <label class="field-label" for="contactEmail">Contact Email</label>
+      <input
+        class="field"
+        id="contactEmail"
+        type="email"
+        maxlength="150"
+        placeholder="your@email.com"
+      >
+
+      <label class="field-label" for="campaignTitle">Campaign Title *</label>
+      <input
+        class="field"
+        id="campaignTitle"
+        maxlength="150"
+        placeholder="Example: New product promotion"
+        required
+      >
+
+      <label class="field-label" for="campaignDescription">Campaign Description *</label>
+      <textarea
+        class="field"
+        id="campaignDescription"
+        maxlength="2000"
+        placeholder="Describe your product, service or promotion"
+        required
+      ></textarea>
+
+      <label class="field-label" for="targetUrl">Website / Promotion Link *</label>
+      <input
+        class="field"
+        id="targetUrl"
+        type="url"
+        placeholder="https://example.com"
+        required
+      >
+
+      <p class="section-note">
+        Campaigns are reviewed by AMA Earn admin before approval.
+        Campaign charges and payment arrangements will be discussed manually.
+      </p>
+
+      <button class="gold" id="submitCampaignBtn" type="submit">
+        SUBMIT CAMPAIGN
+      </button>
+    </form>
+
+    <div class="status" id="campaignMessage"></div>
+
+    <hr style="border-color:#29364b;margin:22px 0">
+
+    <h3>📋 My Campaigns</h3>
+    <button class="dark" id="refreshMyCampaigns">REFRESH MY CAMPAIGNS</button>
+    <div id="myCampaigns">
+      <div class="status">Your campaigns will appear here.</div>
+    </div>
+  </div>
+
+  <!-- ADMIN PROOF PANEL -->
   <div class="card hidden" id="adminPanel">
     <h3>👑 AMA Earn Admin Panel</h3>
     <p class="muted">Review Instagram and YouTube proof submissions.</p>
     <button class="gold" id="refreshAdmin">REFRESH SUBMISSIONS</button>
     <div id="adminSubmissions">
       <div class="status">Loading admin panel...</div>
+    </div>
+  </div>
+
+  <!-- ADMIN CAMPAIGN PANEL -->
+  <div class="card hidden" id="adminCampaignPanel">
+    <h3>🛠 Campaign Management</h3>
+    <p class="muted">
+      Review advertiser campaigns and update payment status.
+    </p>
+    <button class="gold" id="refreshAdminCampaigns">REFRESH CAMPAIGNS</button>
+    <div id="adminCampaigns">
+      <div class="status">Loading campaigns...</div>
     </div>
   </div>
 
@@ -152,6 +359,12 @@
   const inviteBtn = document.getElementById("inviteBtn");
   const adminPanel = document.getElementById("adminPanel");
   const adminSubmissions = document.getElementById("adminSubmissions");
+
+  const campaignForm = document.getElementById("campaignForm");
+  const campaignMessage = document.getElementById("campaignMessage");
+  const myCampaignsEl = document.getElementById("myCampaigns");
+  const adminCampaignPanel = document.getElementById("adminCampaignPanel");
+  const adminCampaignsEl = document.getElementById("adminCampaigns");
 
   let busy = false;
 
@@ -180,6 +393,21 @@
 
   function showMessage(message) {
     messageEl.textContent = message;
+  }
+
+  function createButton(text, className, clickHandler) {
+    const button = document.createElement("button");
+    button.textContent = text;
+    button.className = className;
+    button.addEventListener("click", clickHandler);
+    return button;
+  }
+
+  function makeText(tag, className, text) {
+    const element = document.createElement(tag);
+    if (className) element.className = className;
+    element.textContent = text;
+    return element;
   }
 
   async function loadProfile() {
@@ -218,14 +446,6 @@
     }
   });
 
-  function createButton(text, className, clickHandler) {
-    const button = document.createElement("button");
-    button.textContent = text;
-    button.className = className;
-    button.addEventListener("click", clickHandler);
-    return button;
-  }
-
   async function loadTasks() {
     try {
       const data = await api("/api/tasks");
@@ -240,17 +460,9 @@
         const item = document.createElement("div");
         item.className = "task";
 
-        const title = document.createElement("div");
-        title.className = "task-title";
-        title.textContent = task.title;
-
-        const description = document.createElement("div");
-        description.className = "muted";
-        description.textContent = task.description || "";
-
-        const reward = document.createElement("div");
-        reward.className = "reward";
-        reward.textContent = "+" + task.reward + " points";
+        const title = makeText("div", "task-title", task.title);
+        const description = makeText("div", "muted", task.description || "");
+        const reward = makeText("div", "reward", "+" + task.reward + " points");
 
         item.append(title, description, reward);
 
@@ -368,9 +580,11 @@
           item.appendChild(file);
           item.appendChild(upload);
         } else {
-          const note = document.createElement("div");
-          note.className = "muted";
-          note.textContent = "Verification method not available yet.";
+          const note = makeText(
+            "div",
+            "muted",
+            "Verification method not available yet."
+          );
           item.appendChild(note);
         }
 
@@ -399,7 +613,100 @@
     }
   });
 
-  // ADMIN PANEL
+  // ADVERTISER: SUBMIT CAMPAIGN
+  campaignForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const submitBtn = document.getElementById("submitCampaignBtn");
+    submitBtn.disabled = true;
+    submitBtn.textContent = "SUBMITTING...";
+    campaignMessage.textContent = "";
+
+    const campaign = {
+      company_name: document.getElementById("companyName").value.trim(),
+      contact_email: document.getElementById("contactEmail").value.trim(),
+      title: document.getElementById("campaignTitle").value.trim(),
+      description: document.getElementById("campaignDescription").value.trim(),
+      target_url: document.getElementById("targetUrl").value.trim()
+    };
+
+    try {
+      await api("/api/advertiser/campaigns", "POST", campaign);
+
+      campaignMessage.textContent =
+        "Campaign submitted successfully. Waiting for admin review.";
+
+      campaignForm.reset();
+      await loadMyCampaigns();
+    } catch (error) {
+      campaignMessage.textContent = error.message;
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "SUBMIT CAMPAIGN";
+    }
+  });
+
+  // ADVERTISER: LOAD OWN CAMPAIGNS
+  async function loadMyCampaigns() {
+    myCampaignsEl.textContent = "Loading your campaigns...";
+
+    try {
+      const data = await api("/api/advertiser/campaigns");
+      myCampaignsEl.innerHTML = "";
+
+      if (!data.campaigns || data.campaigns.length === 0) {
+        myCampaignsEl.textContent = "You have not submitted any campaigns yet.";
+        return;
+      }
+
+      data.campaigns.forEach(campaign => {
+        const card = document.createElement("div");
+        card.className = "campaign-item";
+
+        card.appendChild(makeText("div", "task-title", campaign.title));
+        card.appendChild(makeText("div", "muted", campaign.company_name));
+        card.appendChild(makeText("p", "muted", campaign.description));
+
+        const status = makeText(
+          "div",
+          "campaign-status " +
+            (campaign.status === "approved"
+              ? "approved-status"
+              : campaign.status === "rejected"
+                ? "rejected-status"
+                : "pending"),
+          "Campaign: " + campaign.status.toUpperCase()
+        );
+
+        const payment = makeText(
+          "div",
+          "campaign-status " +
+            (campaign.payment_status === "paid" ? "paid-status" : "unpaid-status"),
+          "Payment: " + campaign.payment_status.toUpperCase()
+        );
+
+        card.append(status, payment);
+
+        if (campaign.admin_note) {
+          card.appendChild(
+            makeText("p", "muted", "Admin note: " + campaign.admin_note)
+          );
+        }
+
+        myCampaignsEl.appendChild(card);
+      });
+
+    } catch (error) {
+      myCampaignsEl.textContent = error.message;
+    }
+  }
+
+  document.getElementById("refreshMyCampaigns").addEventListener(
+    "click",
+    loadMyCampaigns
+  );
+
+  // ADMIN: LOAD PENDING PROOF SUBMISSIONS
   async function loadAdminSubmissions() {
     adminSubmissions.textContent = "Loading submissions...";
 
@@ -416,27 +723,27 @@
         const card = document.createElement("div");
         card.className = "admin-item";
 
-        const heading = document.createElement("div");
-        heading.className = "task-title";
-        heading.textContent = submission.task_title;
+        const heading = makeText("div", "task-title", submission.task_title);
 
-        const username = document.createElement("p");
-        username.className = "muted";
-        username.textContent =
+        const username = makeText(
+          "p",
+          "muted",
           "User: " +
-          (submission.username ? "@" + submission.username : "No username") +
-          " | ID: " + submission.telegram_id;
+            (submission.username ? "@" + submission.username : "No username") +
+            " | ID: " + submission.telegram_id
+        );
 
-        const reward = document.createElement("div");
-        reward.className = "reward";
-        reward.textContent = "Reward: " + submission.reward + " points";
+        const reward = makeText(
+          "div",
+          "reward",
+          "Reward: " + submission.reward + " points"
+        );
 
         const imageLink = document.createElement("a");
         imageLink.href = submission.proof_url;
         imageLink.target = "_blank";
         imageLink.rel = "noopener noreferrer";
         imageLink.textContent = "OPEN FULL SCREENSHOT";
-        imageLink.style.color = "#f4c65e";
 
         const image = document.createElement("img");
         image.className = "proof-image";
@@ -504,20 +811,176 @@
     loadAdminSubmissions
   );
 
-  // Start app
+  // ADMIN: LOAD ALL ADVERTISER CAMPAIGNS
+  async function loadAdminCampaigns() {
+    adminCampaignsEl.textContent = "Loading campaigns...";
+
+    try {
+      const data = await api("/api/admin/campaigns");
+      adminCampaignsEl.innerHTML = "";
+
+      if (!data.campaigns || data.campaigns.length === 0) {
+        adminCampaignsEl.textContent = "No advertiser campaigns yet.";
+        return;
+      }
+
+      data.campaigns.forEach(campaign => {
+        const card = document.createElement("div");
+        card.className = "campaign-item";
+
+        card.appendChild(makeText("div", "task-title", campaign.title));
+        card.appendChild(makeText("div", "muted", "Company: " + campaign.company_name));
+        card.appendChild(makeText("p", "muted", campaign.description));
+        card.appendChild(makeText("p", "muted", "Advertiser Telegram ID: " + campaign.advertiser_telegram_id));
+
+        if (campaign.contact_email) {
+          card.appendChild(makeText("p", "muted", "Email: " + campaign.contact_email));
+        }
+
+        const link = document.createElement("a");
+        link.href = campaign.target_url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = "OPEN CAMPAIGN LINK";
+        card.appendChild(link);
+
+        card.appendChild(
+          makeText(
+            "div",
+            "campaign-status pending",
+            "Campaign: " + campaign.status.toUpperCase()
+          )
+        );
+
+        card.appendChild(
+          makeText(
+            "div",
+            "campaign-status " +
+              (campaign.payment_status === "paid" ? "paid-status" : "unpaid-status"),
+            "Payment: " + campaign.payment_status.toUpperCase()
+          )
+        );
+
+        const noteInput = document.createElement("input");
+        noteInput.className = "field";
+        noteInput.maxLength = 500;
+        noteInput.placeholder = "Optional admin note";
+        noteInput.value = campaign.admin_note || "";
+        card.appendChild(noteInput);
+
+        const actions = document.createElement("div");
+        actions.className = "task-actions";
+
+        const approve = createButton(
+          "APPROVE",
+          "small-btn approve",
+          () => updateCampaign(campaign.id, "approved", noteInput.value, approve, reject)
+        );
+
+        const reject = createButton(
+          "REJECT",
+          "small-btn reject",
+          () => updateCampaign(campaign.id, "rejected", noteInput.value, approve, reject)
+        );
+
+        actions.append(approve, reject);
+        card.appendChild(actions);
+
+        const paymentButton = createButton(
+          campaign.payment_status === "paid" ? "MARK UNPAID" : "MARK PAID",
+          "small-btn dark",
+          () => updateCampaignPayment(
+            campaign.id,
+            campaign.payment_status === "paid" ? "unpaid" : "paid",
+            paymentButton
+          )
+        );
+
+        card.appendChild(paymentButton);
+        adminCampaignsEl.appendChild(card);
+      });
+
+    } catch (error) {
+      adminCampaignsEl.textContent = error.message;
+    }
+  }
+
+  // ADMIN: APPROVE OR REJECT CAMPAIGN
+  async function updateCampaign(id, status, note, approveBtn, rejectBtn) {
+    if (!confirm(
+      status === "approved"
+        ? "Approve this advertiser campaign?"
+        : "Reject this advertiser campaign?"
+    )) {
+      return;
+    }
+
+    approveBtn.disabled = true;
+    rejectBtn.disabled = true;
+
+    try {
+      await api("/api/admin/campaign-review", "POST", {
+        campaign_id: id,
+        status,
+        admin_note: note
+      });
+
+      showMessage("Campaign " + status + " successfully.");
+      await loadAdminCampaigns();
+      await loadMyCampaigns();
+    } catch (error) {
+      approveBtn.disabled = false;
+      rejectBtn.disabled = false;
+      showMessage(error.message);
+    }
+  }
+
+  // ADMIN: UPDATE PAYMENT STATUS
+  async function updateCampaignPayment(id, paymentStatus, button) {
+    if (!confirm("Change payment status to " + paymentStatus.toUpperCase() + "?")) {
+      return;
+    }
+
+    button.disabled = true;
+
+    try {
+      await api("/api/admin/campaign-payment", "POST", {
+        campaign_id: id,
+        payment_status: paymentStatus
+      });
+
+      showMessage("Payment status updated.");
+      await loadAdminCampaigns();
+    } catch (error) {
+      button.disabled = false;
+      showMessage(error.message);
+    }
+  }
+
+  document.getElementById("refreshAdminCampaigns").addEventListener(
+    "click",
+    loadAdminCampaigns
+  );
+
+  // START APP
   if (tg.initData) {
     loadProfile().catch(error => showMessage(error.message));
     loadTasks();
+    loadMyCampaigns();
 
     const telegramUserId = tg.initDataUnsafe?.user?.id;
 
     if (String(telegramUserId) === ADMIN_ID) {
       adminPanel.classList.remove("hidden");
+      adminCampaignPanel.classList.remove("hidden");
+
       loadAdminSubmissions();
+      loadAdminCampaigns();
     }
   } else {
     showMessage("Please open AMA Earn inside Telegram.");
     tasksEl.textContent = "Open the app through Telegram to view tasks.";
+    campaignForm.querySelector("button").disabled = true;
   }
 </script>
 </body>
